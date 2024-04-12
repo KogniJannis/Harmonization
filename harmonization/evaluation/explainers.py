@@ -25,7 +25,7 @@ def torch_saliency_explainer(batch,
     saliency, _ = torch.max(batch.grad.data.abs(), dim=1)
     # explainer need to return numpy array
     saliency = saliency.to('cpu')
-    logits = logits.to('cpu')
+    logits = logits.to('cpu').detach()
     saliency_maps = np.array(saliency)
 
     return saliency, logits

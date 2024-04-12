@@ -70,11 +70,11 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         'correctness': [],
         'confidence': [],
     }
-    counter = 0
+    iteration = 0
     for images_batch, heatmaps_batch, label_batch in clickme_val_dataset:
-        if counter % 10 == 0:
-            print("processed 10 batches")
-        counter += 1
+        if iteration % 50 == 0:
+            print(f"processed {iteration} batches")
+        iteration += 1
         saliency_maps, logits = explainer(images_batch, label_batch, model, preprocess_inputs, device)
 
         if len(saliency_maps.shape) == 4:

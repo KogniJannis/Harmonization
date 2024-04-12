@@ -12,7 +12,7 @@ def evaluate_model(model,               # the model itself
                     model_preprocess,   # a function that takes an image
                     ROOT_RESULTS_DIR):  # path to results folder
     
-    device = torch.cuda.is_available()
+    device = ('cuda' if torch.cuda.is_available() else 'cpu')
     if model_backend == 'pytorch':
         model = model.to(device)
         model.eval() 

@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from xplique.attributions import Saliency
 
 def torch_saliency_explainer(batch, 
                             labels,

@@ -98,6 +98,6 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
     
     # add the score used in the paper: normalized spearman correlation
     metrics['alignment_score'] = np.mean(metrics['spearman']) / HUMAN_SPEARMAN_CEILING
-    metrics['accuracy'] = np.mean(metrics['correct'])
+    metrics['accuracy'] = np.mean(metrics['correctness'])
 
     return metrics

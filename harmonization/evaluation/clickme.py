@@ -92,7 +92,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         metrics['spearman'] += list(spearman_batch)
         metrics['dice']     += list(dice_batch)
         metrics['iou']      += list(iou_batch)
-        metrics['correct'] += list(correctness_batch)
+        metrics['correctness'] += list(correctness_batch)
         metrics['confidence'] += list(confidence_batch)
     
     # add the score used in the paper: normalized spearman correlation

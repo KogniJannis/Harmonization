@@ -88,7 +88,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         label_indices = tf.argmax(label_batch, axis=1)
         is_choice_correct = tf.cast(tf.equal(predicted_indices, label_indices), dtype=tf.float32)
         correctness_batch = is_choice_correct.numpy()
-        confidence_batch = tf.gather_nd(probas, tf.stack((tf.range(tf.shape(label_batch)[0]), label_indices), axis=1)).numpy()
+        confidence_batch = tf.gather_nd(probas, tf.stack((tf.range(tf.shape(label_batch)[0]), tf.cast(label_indices, tf.int32)), axis=1)).numpy()
         metrics['spearman'] += list(spearman_batch)
         metrics['dice']     += list(dice_batch)
         metrics['iou']      += list(iou_batch)

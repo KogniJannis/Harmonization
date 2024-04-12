@@ -41,7 +41,7 @@ def tensorflow_explainer(batch,
     except Exception as explainer_error:
         raise ValueError(f"Backend tensorflow indicated but Xplique (tensorflow) failed to load") from explainer_error
 
-    saliency_maps = explainer(images_batch, label_batch)
-    logits = model(images_batch)
+    saliency_maps = explainer(batch, labels)
+    logits = model(batch)
 
     return saliency_maps, logits

@@ -95,7 +95,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         metrics['iou']      += list(iou_batch)
         metrics['correctness'] += list(correctness_batch)
         metrics['confidence'] += list(confidence_batch)
-    
+    print("calculating aggregate metrics...")
     # add the score used in the paper: normalized spearman correlation
     metrics['alignment_score'] = np.mean(metrics['spearman']) / HUMAN_SPEARMAN_CEILING
     metrics['accuracy'] = np.mean(metrics['correctness'])

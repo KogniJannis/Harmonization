@@ -2,7 +2,7 @@ import os
 import json
 import csv
 import torch
-import clickme
+from .clickme import evaluate_clickme
 from ..common import load_clickme_val
         
 def evaluate_model(model,               # the model itself
@@ -14,11 +14,11 @@ def evaluate_model(model,               # the model itself
     
     device = torch.cuda.is_available()
     model.eval() 
-    scores = clickme.evaluate_clickme(model, 
-                    model_backend = model_backend,
-                    clickme_val_dataset = load_clickme_val(batch_size=32),
-                    preprocess_inputs = model_preprocess,
-                    device = device)
+    scores = evaluate_clickme(model, 
+                                model_backend = model_backend,
+                                clickme_val_dataset = load_clickme_val(batch_size=32),
+                                preprocess_inputs = model_preprocess,
+                                device = device)
 
     '''
     write detailed scores into a json file

@@ -70,9 +70,11 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         'correctness': [],
         'confidence': [],
     }
-
+    counter = 0
     for images_batch, heatmaps_batch, label_batch in clickme_val_dataset:
-
+        if counter % 10 == 0:
+            print("processed 10 batches")
+        counter += 1
         saliency_maps, logits = explainer(images_batch, label_batch, model, preprocess_inputs, device)
 
         if len(saliency_maps.shape) == 4:
@@ -97,7 +99,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         metrics['confidence'] += confidence_batch.tolist()
     print("calculating aggregate metrics...")
     # add the score used in the paper: normalized spearman correlation
-    #metrics['alignment_score'] = np.mean(metrics['spearman']) / HUMAN_SPEARMAN_CEILING
-    #metrics['accuracy'] = np.mean(metrics['correctness'])
+    metrics['alignment_score'] = str(np.mean(metrics['spearman']) / HUMAN_SPEARMAN_CEILING)
+    metrics['accuracy'] = str(np.mean(metrics['correctness']))
 
     return metrics

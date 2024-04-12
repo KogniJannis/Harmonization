@@ -39,6 +39,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         The Human Alignements metrics (Spearman, Dice, IoU) on the Click-me validation set.
     """
     if clickme_val_dataset is None:
+        print("WARNING: NO DATASET PROVIDED \n LOAD WITH DEFAULT BATCH SIZE")
         clickme_val_dataset = load_clickme_val()
 
     if preprocess_inputs is None:

@@ -13,7 +13,10 @@ def evaluate_model(model,               # the model itself
                     ROOT_RESULTS_DIR):  # path to results folder
     
     device = torch.cuda.is_available()
-    model.eval() 
+    if model_backend == 'pytorch':
+        model = model.to(device)
+        model.eval() 
+        
     scores = evaluate_clickme(model, 
                                 model_backend = model_backend,
                                 clickme_val_dataset = load_clickme_val(batch_size=32),

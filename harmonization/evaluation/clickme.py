@@ -90,11 +90,11 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         is_choice_correct = tf.cast(tf.equal(predicted_indices, label_indices), dtype=tf.float32)
         correctness_batch = is_choice_correct.numpy()
         confidence_batch = tf.gather_nd(probas, tf.stack((tf.range(tf.shape(label_batch)[0]), tf.cast(label_indices, tf.int32)), axis=1)).numpy()
-        metrics['spearman'] += list(spearman_batch)
-        metrics['dice']     += list(dice_batch)
-        metrics['iou']      += list(iou_batch)
-        metrics['correctness'] += list(correctness_batch)
-        metrics['confidence'] += list(confidence_batch)
+        metrics['spearman'] += spearman_batch.tolist()
+        metrics['dice']     += dice_batch.tolist()
+        metrics['iou']      += iou_batch.tolist()
+        metrics['correctness'] += correctness_batch.tolist()
+        metrics['confidence'] += confidence_batch.tolist()
     print("calculating aggregate metrics...")
     # add the score used in the paper: normalized spearman correlation
     #metrics['alignment_score'] = np.mean(metrics['spearman']) / HUMAN_SPEARMAN_CEILING

@@ -4,6 +4,7 @@ Module related to the click-me dataset
 
 import tensorflow as tf
 import numpy as np
+import torch
 
 from ..common import load_clickme_val
 from .metrics import spearman_correlation, dice, intersection_over_union

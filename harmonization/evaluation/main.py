@@ -16,6 +16,7 @@ def evaluate_model(model,               # the model itself
     if model_backend == 'pytorch':
         model = model.to(device)
         model.eval() 
+        print(f"moved pytorch model to device {device}")
         
     scores = evaluate_clickme(model, 
                                 model_backend = model_backend,

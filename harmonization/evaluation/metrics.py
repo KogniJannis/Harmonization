@@ -27,8 +27,8 @@ def spearman_correlation(heatmaps_a, heatmaps_b):
     spearman_correlations
         Array of Spearman correlation score between the two sets of heatmaps.
     """
-    assert heatmaps_a.shape == heatmaps_b.shape, "The two sets of heatmaps must" \
-                                                 "have the same shape."
+    assert heatmaps_a.shape == heatmaps_b.shape, "The two sets of heatmaps must have the same shape,"\
+                                                 f"but heamaps_a is {heatmaps_a.shape} and heatmaps_b is {heatmaps_b.shape}"
     assert len(heatmaps_a.shape) == 3, "The two sets of heatmaps must have shape (N, W, H)."
 
     scores = []
@@ -62,8 +62,8 @@ def intersection_over_union(heatmaps_a, heatmaps_b, percentile = 10):
     ious_scores
         Array of IoU scores between the two sets of heatmaps.
     """
-    assert heatmaps_a.shape == heatmaps_b.shape, "The two sets of heatmaps must" \
-                                                 "have the same shape."
+    assert heatmaps_a.shape == heatmaps_b.shape, "The two sets of heatmaps must have the same shape,"\
+                                                 f"but heamaps_a is {heatmaps_a.shape} and heatmaps_b is {heatmaps_b.shape}"
     assert len(heatmaps_a.shape) == 3, "The two sets of heatmaps must have shape (N, W, H)."
 
     scores = []

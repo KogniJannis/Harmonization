@@ -28,7 +28,7 @@ def torch_saliency_explainer(batch,
     logits = logits.to('cpu').detach()
     saliency_maps = np.array(saliency)
 
-    return saliency, logits
+    return saliency_maps, logits
 
 
 def tensorflow_explainer(batch, 

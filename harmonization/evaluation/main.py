@@ -44,22 +44,37 @@ def evaluate_model(model,               # the model itself
     '''
     write overal results into the results table
     '''
-    results_summary = [model_name, model_source, scores['accuracy'], scores['alignment_score']]
-    
-    PERFORMANCE_TABLE_COLUMN_HEADERS = ['model_name', 'source', 'accuracy', 'spearman_feature_alignment']
-    performance_table_path = os.path.join(ROOT_RESULTS_DIR, 'performances.csv')
-    if not os.path.exists(performance_table_path):
-        print("Warning: Performance table not found. New table started.")
-        with open(performance_table_path, 'w', newline='') as f:
-            writer = csv.writer(f, delimiter=';')
-            writer.writerow(PERFORMANCE_TABLE_COLUMN_HEADERS)
+    if 'alignment_score_PIL' in scores:
+        results_summary = [model_name, model_source, scores['accuracy'], scores['alignment_score'], scores['alignment_score_PIL']]
+        
+        PERFORMANCE_TABLE_COLUMN_HEADERS = ['model_name', 'source', 'accuracy', 'spearman_feature_alignment', 'spearman_feature_alignment_PIL']
+        performance_table_path = os.path.join(ROOT_RESULTS_DIR, 'performances_resized.csv')
+        if not os.path.exists(performance_table_path):
+            print("Warning: Performance table for resized models not found. New table started.")
+            with open(performance_table_path, 'w', newline='') as f:
+                writer = csv.writer(f, delimiter=';')
+                writer.writerow(PERFORMANCE_TABLE_COLUMN_HEADERS)
 
-    with open(performance_table_path, 'a+', newline='') as f:
-        writer = csv.writer(f, delimiter=';')
-        writer.writerow(results_summary)
-    
-    print(results_summary)
-    del model #not sure if necessary
+        with open(performance_table_path, 'a+', newline='') as f:
+            writer = csv.writer(f, delimiter=';')
+            writer.writerow(results_summary)
+    else:
+        results_summary = [model_name, model_source, scores['accuracy'], scores['alignment_score']]
+        
+        PERFORMANCE_TABLE_COLUMN_HEADERS = ['model_name', 'source', 'accuracy', 'spearman_feature_alignment']
+        performance_table_path = os.path.join(ROOT_RESULTS_DIR, 'performances.csv')
+        if not os.path.exists(performance_table_path):
+            print("Warning: Performance table not found. New table started.")
+            with open(performance_table_path, 'w', newline='') as f:
+                writer = csv.writer(f, delimiter=';')
+                writer.writerow(PERFORMANCE_TABLE_COLUMN_HEADERS)
+
+        with open(performance_table_path, 'a+', newline='') as f:
+            writer = csv.writer(f, delimiter=';')
+            writer.writerow(results_summary)
+        
+        print(results_summary)
+        del model #not sure if necessary
 
 
 #TODO: a main function that automatically handles torchvision/TIMM from the command line

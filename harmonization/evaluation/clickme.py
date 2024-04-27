@@ -69,13 +69,16 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         'iou': [],
         'correctness': [],
         'confidence': [],
+        'spearman_PIL': [],
+        'dice_PIL': [],
+        'iou_PIL': [],
     }
     iteration = 0
     for images_batch, heatmaps_batch, label_batch in clickme_val_dataset:
         if iteration % 50 == 0:
             print(f"processed {iteration} batches")
         iteration += 1
-        saliency_maps, logits = explainer(images_batch, label_batch, model, preprocess_inputs, device)
+        saliency_maps, saliency_maps_PIL, logits = explainer(images_batch, label_batch, model, preprocess_inputs, device)
 
         if len(saliency_maps.shape) == 4:
             saliency_maps = tf.reduce_mean(saliency_maps, -1)
@@ -86,6 +89,14 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         dice_batch = dice(saliency_maps, heatmaps_batch)
         iou_batch = intersection_over_union(saliency_maps, heatmaps_batch)
 
+        if saliency_maps_PIL is not None:
+            spearman_batch_PIL = spearman_correlation(saliency_maps_PIL, heatmaps_batch)
+            dice_batch_PIL = dice(saliency_maps_PIL, heatmaps_batch)
+            iou_batch_PIL = intersection_over_union(saliency_maps_PIL, heatmaps_batch)
+            metrics['spearman_PIL'] += spearman_batch_PIL.tolist()
+            metrics['dice_PIL']     += dice_batch_PIL.tolist()
+            metrics['iou_PIL']      += iou_batch_PIL.tolist()
+            metrics['alignment_score_PIL'] = str(np.mean(metrics['spearman_PIL']) / HUMAN_SPEARMAN_CEILING)
         probas = tf.nn.softmax(logits)
         predicted_indices = tf.argmax(probas, axis=1)
         label_indices = tf.argmax(label_batch, axis=1)

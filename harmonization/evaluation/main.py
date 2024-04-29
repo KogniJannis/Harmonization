@@ -46,7 +46,7 @@ def evaluate_model(model,               # the model itself
     '''
     write detailed scores into a json file
     '''
-    scores_file_path = os.path.join(ROOT_RESULTS_DIR, model_source + '_' + model_name + '.json')
+    scores_file_path = os.path.join(ROOT_RESULTS_DIR, model_source + '_' + model_name + '_cropped_map.json')
     if os.path.exists(scores_file_path):
         # append a number if file exists, but that really should not happen! 
         print(f"\n WARNING: FILE {scores_file_path} ALREADY EXISTS \n")
@@ -70,7 +70,7 @@ def evaluate_model(model,               # the model itself
     results_summary = [model_name, model_source, scores['accuracy'], scores['alignment_score']]
     
     PERFORMANCE_TABLE_COLUMN_HEADERS = ['model_name', 'source', 'accuracy', 'spearman_feature_alignment']
-    performance_table_path = os.path.join(ROOT_RESULTS_DIR, 'performances.csv')
+    performance_table_path = os.path.join(ROOT_RESULTS_DIR, 'serre_cropped_maps_performances.csv')
     if not os.path.exists(performance_table_path):
         print("Warning: Performance table not found. New table started.")
         with open(performance_table_path, 'w', newline='') as f:

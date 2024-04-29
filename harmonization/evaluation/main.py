@@ -4,6 +4,7 @@ import csv
 import torch
 from .clickme import evaluate_clickme
 from ..common import load_clickme_val
+from torchvision import transforms
 
 def collect_transform_as_dict(compose_obj):
     transform_list = []

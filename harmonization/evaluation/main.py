@@ -5,6 +5,35 @@ import torch
 from .clickme import evaluate_clickme
 from ..common import load_clickme_val
 from torchvision import transforms
+from torchvision.transforms import InterpolationMode
+
+#resizes the image so that is has the shape of the final resize/crop without ever cropping
+def adjust_transform(compose_obj, size_found=False):
+    filtered_transforms = []
+
+    for transform in reversed(compose_obj.transforms):
+        if isinstance(transform, transforms.Resize) and not size_found:
+            # Add the first found Resize (which is the last one applied) to the new list
+            filtered_transforms.append(transform)
+            size_found = True
+        elif isinstance(transform, transforms.CenterCrop) and not size_found:
+            # if a crop is found, resize instead
+            #NOTE: its important that Resize gets the tuple (H,W) from transform.size here, so that resulting ratio matches
+            filtered_transforms.append(transforms.Resize(transform.size, interpolation=InterpolationMode.BILINEAR, antialias=True))
+            size_found = True
+        elif isinstance(transform, transforms.Compose):
+            #recursively handle nested compose
+            adjusted_compose, size_found = adjust_transform(transform, size_found)
+            filtered_transforms.append(adjusted_compose)
+        elif not isinstance(transform, transforms.Resize) and not isinstance(transform, transforms.CenterCrop):
+            # Add all non-Resize/non-CenterCrop transforms
+            filtered_transforms.append(transform)
+
+    # Reverse the list again to get the original order
+    filtered_transforms.reverse()
+    
+    return transforms.Compose(filtered_transforms), size_found
+
 
 def collect_transform_as_dict(compose_obj):
     transform_list = []
@@ -12,7 +41,7 @@ def collect_transform_as_dict(compose_obj):
         if isinstance(transform, transforms.Resize):
             transform_list.append({'type': 'Resize', 'size': transform.size})
         elif isinstance(transform, transforms.CenterCrop):
-            transform_list.append({'type': 'CenterCrop', 'size': transform.size})
+            raise Exception("should not contain a crop")
         elif isinstance(transform, transforms.ToTensor):
             transform_list.append({'type': 'ToTensor'})
         elif isinstance(transform, transforms.Normalize):
@@ -37,17 +66,25 @@ def evaluate_model(model,               # the model itself
         model = model.to(device)
         model.eval() 
         print(f"moved pytorch model to device {device}")
-        
+    else:
+        raise Exception("resizing analysis currently only supported for pytorch, sorry")
+    
+    print('Original Transform:')
+    print(model_transform)
+    model_transform, _ = adjust_transform(model_transform)
+    print('Adjusted Transform to avoid cropping:')
+    print(model_transform)
+
     scores = evaluate_clickme(model, 
                                 model_backend = model_backend,
                                 clickme_val_dataset = load_clickme_val(batch_size=32),
                                 model_transform = model_transform,
                                 device = device)
-
+    
     '''
     write detailed scores into a json file
     '''
-    scores_file_path = os.path.join(ROOT_RESULTS_DIR, model_source + '_' + model_name + '_cropped_map.json')
+    scores_file_path = os.path.join(ROOT_RESULTS_DIR, model_source + '_' + model_name + '_resized_map.json')
     if os.path.exists(scores_file_path):
         # append a number if file exists, but that really should not happen! 
         print(f"\n WARNING: FILE {scores_file_path} ALREADY EXISTS \n")
@@ -71,7 +108,7 @@ def evaluate_model(model,               # the model itself
     results_summary = [model_name, model_source, scores['accuracy'], scores['alignment_score']]
     
     PERFORMANCE_TABLE_COLUMN_HEADERS = ['model_name', 'source', 'accuracy', 'spearman_feature_alignment']
-    performance_table_path = os.path.join(ROOT_RESULTS_DIR, 'serre_cropped_maps_performances.csv')
+    performance_table_path = os.path.join(ROOT_RESULTS_DIR, 'serre_resized_maps_performances.csv')
     if not os.path.exists(performance_table_path):
         print("Warning: Performance table not found. New table started.")
         with open(performance_table_path, 'w', newline='') as f:

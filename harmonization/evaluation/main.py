@@ -24,13 +24,14 @@ def collect_transform_as_dict(compose_obj):
     return transform_list
 
 
-def evaluate_model(model,               # the model itself
-                    model_name,         # e.g. "alexnet"     -> for results documentation
-                    model_source,       # e.g. torchvision   -> for results documentation
-                    model_backend,      # e.g. pytorch       -> important to select correct evaluator
-                    model_transform,    # the raw transformation without conversion to PIL, takes an image
-                    ROOT_RESULTS_DIR,   # path to results folder
-                    document_transforms=True):  
+def evaluate_model(model,                       # the model itself
+                    model_name,                 # e.g. "alexnet"     -> for results documentation
+                    model_source,               # e.g. torchvision   -> for results documentation
+                    model_backend,              # e.g. pytorch       -> important to select correct evaluator
+                    model_transform,            # the raw transformation without conversion to PIL, takes an image
+                    ROOT_RESULTS_DIR,           # path to results folder
+                    document_transforms=True,   # whether to put the transforms in the results json
+                    batch_size=32):  
     
     device = ('cuda' if torch.cuda.is_available() else 'cpu')
     if model_backend == 'pytorch':
@@ -40,7 +41,7 @@ def evaluate_model(model,               # the model itself
         
     scores = evaluate_clickme(model, 
                                 model_backend = model_backend,
-                                clickme_val_dataset = load_clickme_val(batch_size=32),
+                                clickme_val_dataset = load_clickme_val(batch_size=batch_size),
                                 model_transform = model_transform,
                                 device = device)
 

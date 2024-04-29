@@ -4,13 +4,32 @@ import csv
 import torch
 from .clickme import evaluate_clickme
 from ..common import load_clickme_val
-        
+
+def collect_transform_as_dict(compose_obj):
+    transform_list = []
+    for transform in compose_obj.transforms:
+        if isinstance(transform, transforms.Resize):
+            transform_list.append({'type': 'Resize', 'size': transform.size})
+        elif isinstance(transform, transforms.CenterCrop):
+            transform_list.append({'type': 'CenterCrop', 'size': transform.size})
+        elif isinstance(transform, transforms.ToTensor):
+            transform_list.append({'type': 'ToTensor'})
+        elif isinstance(transform, transforms.Normalize):
+            transform_list.append({'type': 'Normalize', 'mean': f'{transform.mean}', 'std': f'{transform.std}'})
+        elif isinstance(transform, transforms.Compose):
+            transform_list.append({'type': 'Compose', 'composition': collect_transform_as_dict(transform)})
+        else:
+           transform_list.append({'type': f'{type(transform)}'})
+    return transform_list
+
+
 def evaluate_model(model,               # the model itself
                     model_name,         # e.g. "alexnet"     -> for results documentation
                     model_source,       # e.g. torchvision   -> for results documentation
                     model_backend,      # e.g. pytorch       -> important to select correct evaluator
-                    model_preprocess,   # a function that takes an image
-                    ROOT_RESULTS_DIR):  # path to results folder
+                    model_transform,    # the raw transformation without conversion to PIL, takes an image
+                    ROOT_RESULTS_DIR,   # path to results folder
+                    document_transforms=True):  
     
     device = ('cuda' if torch.cuda.is_available() else 'cpu')
     if model_backend == 'pytorch':
@@ -21,7 +40,7 @@ def evaluate_model(model,               # the model itself
     scores = evaluate_clickme(model, 
                                 model_backend = model_backend,
                                 clickme_val_dataset = load_clickme_val(batch_size=32),
-                                preprocess_inputs = model_preprocess,
+                                model_transform = model_transform,
                                 device = device)
 
     '''
@@ -37,7 +56,11 @@ def evaluate_model(model,               # the model itself
             if duplicate_marker > 3: #tolerate max. 3 duplicates (name, name2 and name3)
                 raise Exception(f"error saving scores for model {model_name}")
             scores_file_path = f"{scores_file_path.split('.json')[0]}_{duplicate_marker}.json"
-            
+    
+    #add documentation of preprocessing function to the json
+    if document_transforms:
+        scores['transforms'] = collect_transform_as_dict(model_transform)
+
     with open(scores_file_path, 'w') as f:
           json.dump(scores, f)
 

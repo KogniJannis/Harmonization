@@ -111,7 +111,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         saliency_maps, logits = explainer(images_batch, label_batch, model, preprocess_inputs, device)
 
         if model_backend == 'pytorch' and model_transform is not None:
-            heatmaps_batch = torch.stack([torch.tensor(filter_resize_crop(model_transform)(x)) for x in
+            heatmaps_batch = torch.stack([torch.tensor(preprocess_heatmaps(x)) for x in
                                 heatmaps_batch.numpy()])
             heatmaps_batch = heatmaps_batch.permute(0, 2, 3, 1)
             heatmaps_batch = np.array(heatmaps_batch)

@@ -60,27 +60,36 @@ def evaluate_model(model,                       # the model itself
                     model_transform,            # the raw transformation without conversion to PIL, takes an image
                     ROOT_RESULTS_DIR,           # path to results folder
                     document_transforms=True,   # whether to put the transforms in the results json
-                    batch_size=32):  
+                    batch_size=32
+                    tf_input_size=None):           #necessary for tensorflow models  
     
     device = ('cuda' if torch.cuda.is_available() else 'cpu')
     if model_backend == 'pytorch':
         model = model.to(device)
         model.eval() 
         print(f"moved pytorch model to device {device}")
-    else:
-        raise Exception("resizing analysis currently only supported for pytorch, sorry")
+        print('Original Transform:')
+        print(model_transform)
+        model_transform, _ = adjust_transform(model_transform)
+        print('Adjusted Transform to avoid cropping:')
+        print(model_transform)
     
-    print('Original Transform:')
-    print(model_transform)
-    model_transform, _ = adjust_transform(model_transform)
-    print('Adjusted Transform to avoid cropping:')
-    print(model_transform)
+    elif model_backend == 'tensorflow':
+        assert tf_input_size is not None, "when evaluating with tensorflow an input size to resize heatmaps must be provided"
+        print("WARNING: make sure your model has no cropping in its preprocessing!!")
+        print(f"Evaluating with tensorflow and setting input size to {tf_input_size}")
+    
+    else:
+        raise Exception(f"resizing analysis currentlynot supported for {model_backend}")
+    
+    
 
     scores = evaluate_clickme(model, 
                                 model_backend = model_backend,
                                 clickme_val_dataset = load_clickme_val(batch_size=batch_size),
                                 model_transform = model_transform,
-                                device = device)
+                                device = device,
+                                tf_input_size=tf_input_size)
     
     '''
     write detailed scores into a json file
@@ -98,8 +107,12 @@ def evaluate_model(model,                       # the model itself
     
     #add documentation of preprocessing function to the json
     if document_transforms:
-        scores['transforms'] = collect_transform_as_dict(model_transform)
-
+        if model_backend == 'pytorch':
+            scores['transforms'] = collect_transform_as_dict(model_transform)
+        else:
+            print(f"WARNING: cannot document transforms for backend {model_backend}")
+            scores['transforms'] = f"{model_backend} transform"
+    
     with open(scores_file_path, 'w') as f:
           json.dump(scores, f)
 

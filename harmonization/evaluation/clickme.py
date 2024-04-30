@@ -77,7 +77,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
     elif model_backend == 'tensorflow':
         print(f"Backend is tensorflow and transform size is set to {tf_input_size}")
         preprocess_inputs = model_transform #pass-through of the tensorflow transform object
-        preprocess_heatmaps = transforms.Resize(tf_input_size, interpolation=InterpolationMode.BILINEAR, antialias=True)
+        preprocess_heatmaps = transforms.Resize(tf_input_size, interpolation=InterpolationMode.BICUBIC, antialias=True)
 
     #NOTE this is how preprocessing was done for tensorflow models:
     #for pytorch models there was no dataset level preprocessing and each batch was preprocessed individually in the explainer

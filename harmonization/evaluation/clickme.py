@@ -11,6 +11,7 @@ from .metrics import spearman_correlation, dice, intersection_over_union
 from .explainers import tensorflow_explainer, torch_saliency_explainer
 
 from torchvision import transforms
+from torchvision.transforms import InterpolationMode
 
 HUMAN_SPEARMAN_CEILING = 0.65753
 AUTO = tf.data.AUTOTUNE

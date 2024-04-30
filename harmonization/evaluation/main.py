@@ -60,7 +60,7 @@ def evaluate_model(model,                       # the model itself
                     model_transform,            # the raw transformation without conversion to PIL, takes an image
                     ROOT_RESULTS_DIR,           # path to results folder
                     document_transforms=True,   # whether to put the transforms in the results json
-                    batch_size=32
+                    batch_size=32,
                     tf_input_size=None):           #necessary for tensorflow models  
     
     device = ('cuda' if torch.cuda.is_available() else 'cpu')

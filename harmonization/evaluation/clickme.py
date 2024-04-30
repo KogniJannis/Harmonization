@@ -39,7 +39,7 @@ def filter_resize_crop(compose_obj):
 
 def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
                      model_transform = None,
-                     device = 'cpu'):
+                     device = 'cpu', tf_input_size=224):
     """
     Evaluates a model on the Click-me validation set.
 
@@ -74,7 +74,11 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         preprocess_inputs = transforms.Compose([transforms.ToPILImage(), model_transform])
         preprocess_heatmaps = transforms.Compose([transforms.ToPILImage(mode="F"), model_transform])
         preprocess_heatmaps = filter_resize_crop(preprocess_heatmaps)
-    
+    elif model_backend == 'tensorflow':
+        print(f"Backend is tensorflow and transform size is set to {tf_input_size}")
+        preprocess_inputs = model_transform #pass-through of the tensorflow transform object
+        preprocess_heatmaps = transforms.Resize(tf_input_size, interpolation=InterpolationMode.BILINEAR, antialias=True)
+
     #NOTE this is how preprocessing was done for tensorflow models:
     #for pytorch models there was no dataset level preprocessing and each batch was preprocessed individually in the explainer
     #right now I attempt moving this into the batch
@@ -104,13 +108,9 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
             print(f"processed {iteration} batches")
         iteration += 1
         
-        
-        #DEBUG output
-
-        
         saliency_maps, logits = explainer(images_batch, label_batch, model, preprocess_inputs, device)
 
-        if model_backend == 'pytorch' and model_transform is not None:
+        if model_transform is not None:
             heatmaps_batch = torch.stack([torch.tensor(preprocess_heatmaps(x)) for x in
                                 heatmaps_batch.numpy()])
             heatmaps_batch = heatmaps_batch.permute(0, 2, 3, 1)

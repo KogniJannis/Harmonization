@@ -19,7 +19,7 @@ def adjust_transform(compose_obj, size_found=False):
         elif isinstance(transform, transforms.CenterCrop) and not size_found:
             # if a crop is found, resize instead
             #NOTE: its important that Resize gets the tuple (H,W) from transform.size here, so that resulting ratio matches
-            filtered_transforms.append(transforms.Resize(transform.size, interpolation=InterpolationMode.BILINEAR, antialias=True))
+            filtered_transforms.append(transforms.Resize(transform.size, interpolation=InterpolationMode.BICUBIC , antialias=True))
             size_found = True
         elif isinstance(transform, transforms.Compose):
             #recursively handle nested compose

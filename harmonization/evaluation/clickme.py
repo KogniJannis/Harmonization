@@ -79,7 +79,7 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         print(f"Backend is tensorflow and transform size is set to {tf_input_size}")
         preprocess_inputs = model_transform #pass-through of the tensorflow transform object
         preprocess_heatmaps = transforms.Compose([transforms.ToPILImage(mode="F"), 
-                                                  transforms.Resize(tf_input_size, interpolation=InterpolationMode.BILINEAR, antialias=True).
+                                                  transforms.Resize(tf_input_size, interpolation=InterpolationMode.BILINEAR, antialias=True),
                                                   transforms.ToTensor()])
 
     #NOTE this is how preprocessing was done for tensorflow models:

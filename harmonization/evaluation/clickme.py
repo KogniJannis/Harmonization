@@ -10,13 +10,37 @@ from ..common import load_clickme_val
 from .metrics import spearman_correlation, dice, intersection_over_union
 from .explainers import tensorflow_explainer, torch_saliency_explainer
 
+from torchvision import transforms
+from torchvision.transforms import InterpolationMode
+
 HUMAN_SPEARMAN_CEILING = 0.65753
 AUTO = tf.data.AUTOTUNE
 
 
+# output a compose object that only crops and resizes to adjust heatmaps (either model gradient maps or the human heatmaps)
+def filter_resize_crop(compose_obj):
+    filtered_transforms = []
+    for transform in compose_obj.transforms:
+        if isinstance(transform, transforms.Resize) \
+            or isinstance(transform, transforms.CenterCrop) \
+            or isinstance(transform, transforms.ToPILImage) \
+            or isinstance(transform, transforms.ToTensor):
+            
+            if isinstance(transform, transforms.CenterCrop):
+                print(f"Detected crop to size {transform.size}x{transform.size}")
+            if isinstance(transform, transforms.Resize):
+                print(f"Detected resize to size {transform.size}x{transform.size}")
+            
+            filtered_transforms.append(transform)
+        elif isinstance(transform, transforms.Compose):
+          filtered_transforms.append(filter_resize_crop(transform))
+    
+    return transforms.Compose(filtered_transforms)
+
+
 def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
-                     preprocess_inputs = None,
-                     device = 'cpu'):
+                     model_transform = None,
+                     device = 'cpu', tf_input_size=224):
     """
     Evaluates a model on the Click-me validation set.
 
@@ -42,10 +66,21 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         print("WARNING: NO DATASET PROVIDED \n LOAD WITH DEFAULT BATCH SIZE")
         clickme_val_dataset = load_clickme_val()
 
-    if preprocess_inputs is None:
+    if model_transform is None:
         # default to identity
         print("\n WARNING: SET PREPROCESS TO IDENTITY \n")
         preprocess_inputs = lambda x : x
+    elif model_backend == 'pytorch':
+        print("Using pytorch backend and non-identity transforms, checking for resizes and crops...")
+        preprocess_inputs = transforms.Compose([transforms.ToPILImage(), model_transform])
+        preprocess_heatmaps = transforms.Compose([transforms.ToPILImage(mode="F"), model_transform])
+        preprocess_heatmaps = filter_resize_crop(preprocess_heatmaps)
+    elif model_backend == 'tensorflow':
+        print(f"Backend is tensorflow and transform size is set to {tf_input_size}")
+        preprocess_inputs = model_transform #pass-through of the tensorflow transform object
+        preprocess_heatmaps = transforms.Compose([transforms.ToPILImage(mode="F"), 
+                                                  transforms.Resize(tf_input_size, interpolation=InterpolationMode.BILINEAR, antialias=True),
+                                                  transforms.ToTensor()])
 
     #NOTE this is how preprocessing was done for tensorflow models:
     #for pytorch models there was no dataset level preprocessing and each batch was preprocessed individually in the explainer
@@ -75,8 +110,16 @@ def evaluate_clickme(model, model_backend, clickme_val_dataset = None,
         if iteration % 50 == 0:
             print(f"processed {iteration} batches")
         iteration += 1
+        
         saliency_maps, logits = explainer(images_batch, label_batch, model, preprocess_inputs, device)
 
+        if model_transform is not None:
+            heatmaps_batch = torch.stack([torch.tensor(preprocess_heatmaps(x)) for x in
+                                heatmaps_batch.numpy()])
+            heatmaps_batch = heatmaps_batch.permute(0, 2, 3, 1)
+            heatmaps_batch = np.array(heatmaps_batch)
+
+        #from this point onwards its assumed that heatmaps and model gradient maps have the same size, though it may not be 224x224
         if len(saliency_maps.shape) == 4:
             saliency_maps = tf.reduce_mean(saliency_maps, -1)
         if len(heatmaps_batch.shape) == 4:
